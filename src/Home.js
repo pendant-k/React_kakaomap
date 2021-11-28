@@ -33,7 +33,16 @@ const SearchInput = styled.input`
 
 const Home = (props) => {
     const [input, setInput] = useState("");
+    const [update, setUpdate] = useState(false);
     const [markers, setMarkers] = useState([]);
+
+    // 키워드 input state에 저장
+    const handleSubmit = (e) => {
+        console.log(input);
+        setUpdate(true);
+        e.preventDefault();
+    };
+
     const container = useRef(null);
 
     const options = {
@@ -42,15 +51,47 @@ const Home = (props) => {
             37.545642179638556,
             126.98117041998981
         ), //지도의 중심좌표.
-        level: 6, //지도의 레벨(확대, 축소 정도)
+        level: 4, //지도의 레벨(확대, 축소 정도)
     };
 
-    //키워드 검색 함수
+    // 첫 화면 지도
+
+    useEffect(() => {
+        const map = new window.kakao.maps.Map(container.current, options);
+    }, []);
+
+    // 키워드 검색
 
     useEffect(() => {
         //지도 생성 및 객체 리턴
         const map = new window.kakao.maps.Map(container.current, options);
-    }, []);
+        // 장소 검색 객체 생성
+        let ps = new window.kakao.maps.services.Places();
+
+        // 키워드로 장소를 검색
+        ps.keywordSearch(input, placesSearchCB);
+
+        function displayMarker(place) {
+            let marker = new window.kakao.maps.Marker({
+                map: map,
+                position: new window.kakao.maps.LatLng(place.y, place.x),
+            });
+        }
+
+        function placesSearchCB(data, status, pagination) {
+            if (status === window.kakao.maps.services.Status.OK) {
+                let bounds = new window.kakao.maps.LatLngBounds();
+
+                for (let i = 0; i < data.length; i++) {
+                    displayMarker(data[i]);
+                    bounds.extend(
+                        new window.kakao.maps.LatLng(data[i].y, data[i].x)
+                    );
+                }
+            }
+        }
+        setUpdate(false);
+    }, [update]);
 
     const mapStyle = {
         width: WIDTH,
@@ -61,7 +102,15 @@ const Home = (props) => {
         <Container>
             <SearchContainer>
                 <SearchIcon fontSize="16" />
-                <SearchInput placeholder="검색어를 입력해주세요." />
+                <form action="/" method="get" onSubmit={handleSubmit}>
+                    <SearchInput
+                        value={input}
+                        type="text"
+                        placeholder="검색"
+                        name="search_input"
+                        onInput={(e) => setInput(e.target.value)}
+                    />
+                </form>
             </SearchContainer>
             <div id="map" style={mapStyle} ref={container}></div>
         </Container>
