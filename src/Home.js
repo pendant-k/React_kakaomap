@@ -2,9 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import SearchIcon from "@mui/icons-material/Search";
 
-const WIDTH = window.innerWidth;
-const HEIGHT = window.innerHeight;
-
 //styling
 const Container = styled.div`
     display: flex;
@@ -19,17 +16,30 @@ const SearchContainer = styled.div`
     align-items: center;
     position: absolute;
     z-index: 2;
-    width: 20%;
+    width: 30vw;
     height: 3%;
     padding-left: 10px;
     margin-top: 20px;
     border-radius: 15px;
+    opacity: 0.9;
 `;
 const SearchInput = styled.input`
+    :focus {
+        outline: none;
+    }
+    margin-left: 10px;
+    width: 25vw;
+    border-radius: 15px;
     border-width: 0px;
-    width: 70%;
     font-size: 16px;
+    ::placeholder {
+        color: gray;
+        opacity: 0.9;
+        text-align: center;
+    }
 `;
+
+const PlaceList = styled.div``;
 
 const Home = (props) => {
     const [input, setInput] = useState("");
@@ -87,7 +97,7 @@ const Home = (props) => {
                 position: new window.kakao.maps.LatLng(place.y, place.x),
             });
             window.kakao.maps.event.addListener(marker, "click", () => {
-                alert(place.place_name);
+                SendMessage(place.place_name);
             });
         }
 
@@ -106,12 +116,17 @@ const Home = (props) => {
             }
         }
 
-        setUpdate(false);
+        function SendMessage(place) {
+            window.postMessage(place);
+            alert(`send! ${place}`);
+        }
+
+        if (update === true) setUpdate(false);
     }, [update]);
 
     const mapStyle = {
-        width: WIDTH,
-        height: HEIGHT,
+        width: "100vw",
+        height: "100vh",
     };
 
     return (
@@ -128,6 +143,7 @@ const Home = (props) => {
                     />
                 </form>
             </SearchContainer>
+            <PlaceList></PlaceList>
             <div id="map" style={mapStyle} ref={container}></div>
         </Container>
     );
